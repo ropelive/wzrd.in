@@ -256,7 +256,7 @@ function run_browserify() {
 
   info "Running browserify with arguments: ${browserify_argv[@]}..."
 
-  browserify ${browserify_argv[@]} 2>>${LOG_FILE} | uglifyjs - 2>>${LOG_FILE} 1>${BROWSERIFY_FILE}
+  browserify ${browserify_argv[@]} 2>>${LOG_FILE} | uglifyjs --compress --mangle -- 2>>${LOG_FILE} 1>${BROWSERIFY_FILE}
 }
 
 cd ./build
