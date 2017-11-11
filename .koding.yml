@@ -1,0 +1,64 @@
+provider:
+  aws:
+    access_key: '${var.aws_access_key}'
+    secret_key: '${var.aws_secret_key}'
+  cloudflare:
+    email: '${var.custom_cfemail}'
+    token: '${var.custom_cftoken}'
+
+resource:
+  aws_instance:
+    wzrd-in:
+      koding_always_on: true
+      instance_type: 't2.medium'
+      ami: ''
+      tags:
+        Name: '${var.koding_user_username}-${var.koding_group_slug}'
+      user_data: |-
+        export DEBIAN_FRONTEND=noninteractive
+
+        apt-get update
+        apt-get -y -qq install python-pip build-essential git
+
+        curl --silent --location https://get.docker.com/ | sh
+
+        cd /
+
+        git clone https://github.com/creationix/nvm.git nvm
+        . ./nvm/nvm.sh
+        nvm install 6
+
+        git clone https://github.com/ropelive/wzrd.in.git
+        cd wzrd.in
+
+        cat >start.sh <<EOF
+        export WZRDIN_DOCKER_TAG=browserify-builder
+        export WZRDIN_CORS_ORIGIN=https://rope.live
+        export WZRDIN_CORS_METHODS=GET,POST
+        export WZRDIN_LEVEL_DB=/cdn.db
+        export WZRDIN_NPM_REGISTRY=https://registry.npmjs.com
+        export WZRDIN_NPM_SKIMDB=https://skimdb.npmjs.com:443
+        export WZRDIN_NPM_FOLLOWER_REFRESHRATE=120000
+        export PORT=80
+
+        npm start
+        EOF
+
+        chmod +x start.sh
+
+        npm install
+        npm run bootstrap
+
+        echo 'WZRD.in installed!'
+
+  aws_eip:
+    wzrd-in:
+      instance: "${aws_instance.wzrd-in.id}"
+
+  cloudflare_record:
+    wzrdin:
+      domain: "${var.custom_cfdomain}"
+      name: "npm"
+      value: "${aws_eip.wzrd-in.public_ip}"
+      type: "A"
+      ttl: 3600
