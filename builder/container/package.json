@@ -19,8 +19,8 @@
   },
   "homepage": "https://github.com/jfhbrook/wzrd.in#readme",
   "dependencies": {
-    "browserify": "13.1.0",
     "uglify-js": "2.7.3",
-    "glob": "7.0.6"
+    "browserify": "14.5.0",
+    "glob": "7.1.2"
   }
 }
